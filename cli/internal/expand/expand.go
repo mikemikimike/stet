@@ -16,6 +16,7 @@ import (
 	"go/token"
 
 	"stet/cli/internal/diff"
+	"stet/cli/internal/jsts"
 )
 
 // hunkHeaderRegex captures @@ -oldStart,oldCount +newStart,newCount @@
@@ -61,7 +62,7 @@ const (
 )
 
 // ExpandHunk enriches a hunk with enclosing function context when supported.
-// Go, JavaScript/TypeScript (.js, .jsx, .ts, .tsx), and Python (.py) files
+// Go, JavaScript/TypeScript (.js, .jsx, .mjs, .cjs, .ts, .tsx), and Python (.py) files
 // are expanded when the hunk is inside a function or class method. Respects
 // maxTokens by truncating; prioritizes function signature. Returns the hunk
 // unchanged on any error or for unsupported files (fail open). repoRoot is
@@ -74,7 +75,7 @@ func ExpandHunk(repoRoot string, hunk diff.Hunk, maxTokens int) (diff.Hunk, erro
 	switch {
 	case ext == goExt:
 		return expandGoHunk(repoRoot, hunk, maxTokens)
-	case isJSTSExt(ext):
+	case jsts.IsSupportedExtension(ext):
 		return expandJSTSHunk(repoRoot, hunk, maxTokens)
 	case ext == pyExt:
 		return expandPythonHunk(repoRoot, hunk, maxTokens)

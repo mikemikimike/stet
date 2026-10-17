@@ -59,6 +59,36 @@ export function greet(name: string): string {
 	}
 }
 
+func TestResolveSymbols_registeredExtensions(t *testing.T) {
+	ctx := context.Background()
+	dir := testutil.TempGitDir(t)
+	initGitRepo(t, dir)
+	pkgDir := filepath.Join(dir, "src")
+	if err := os.MkdirAll(pkgDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	content := `export function greet(name) {
+  return "Hello, " + name;
+}
+`
+	if err := os.WriteFile(filepath.Join(pkgDir, "index.js"), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+	gitAdd(t, dir, "src/index.js")
+
+	for _, ext := range []string{".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"} {
+		t.Run(ext, func(t *testing.T) {
+			defs, err := rag.ResolveSymbols(ctx, dir, "src/component"+ext, "greet(user)", rag.ResolveOptions{MaxDefinitions: 5})
+			if err != nil {
+				t.Fatalf("ResolveSymbols: %v", err)
+			}
+			if len(defs) != 1 || defs[0].Symbol != "greet" {
+				t.Fatalf("ResolveSymbols(%q) = %#v, want the greet definition", ext, defs)
+			}
+		})
+	}
+}
+
 func TestResolveSymbols_maxN_returnsAtMostN(t *testing.T) {
 	ctx := context.Background()
 	dir := testutil.TempGitDir(t)

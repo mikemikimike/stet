@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"stet/cli/internal/jsts"
 	"stet/cli/internal/rag"
 )
 
@@ -42,11 +43,10 @@ var callIdent = regexp.MustCompile(`\b([a-zA-Z_$][A-Za-z0-9_$]*)\s*\(`)
 type Resolver struct{}
 
 func init() {
-	rag.MustRegisterResolver(".js", New())
-	rag.MustRegisterResolver(".mjs", New())
-	rag.MustRegisterResolver(".cjs", New())
-	rag.MustRegisterResolver(".ts", New())
-	rag.MustRegisterResolver(".tsx", New())
+	resolver := New()
+	for _, ext := range jsts.SupportedExtensions() {
+		rag.MustRegisterResolver(ext, resolver)
+	}
 }
 
 // New returns a new JavaScript/TypeScript symbol resolver.

@@ -77,6 +77,32 @@ func TestExpandHunk_JSTS_enclosingFunction(t *testing.T) {
 				RawContent: "@@ -1,4 +1,4 @@\n export const Button = ({ onClick }) => {\n-  const label = \"click\";\n+  const label = \"tap\";\n   return <button onClick={onClick}>{label}</button>;",
 			},
 		},
+		{
+			name:     "javascript_module_mjs",
+			fileName: "app.mjs",
+			content: `function processData(input) {
+  const count = input.length;
+  return count;
+}
+`,
+			hunk: diff.Hunk{
+				FilePath:   "app.mjs",
+				RawContent: "@@ -1,4 +1,4 @@\n function processData(input) {\n-  const count = input.length;\n+  const count = input.length + 1;\n   return count;\n }",
+			},
+		},
+		{
+			name:     "commonjs_module_cjs",
+			fileName: "app.cjs",
+			content: `function processData(input) {
+  const count = input.length;
+  return count;
+}
+`,
+			hunk: diff.Hunk{
+				FilePath:   "app.cjs",
+				RawContent: "@@ -1,4 +1,4 @@\n function processData(input) {\n-  const count = input.length;\n+  const count = input.length + 1;\n   return count;\n }",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -201,26 +227,6 @@ func TestFindEnclosingJSTSScope_smallestWins(t *testing.T) {
 	}
 	if !strings.Contains(extractLineRange(src, scope.startLine, scope.endLine), "function inner") {
 		t.Errorf("expected inner function, got lines %d-%d: %q", scope.startLine, scope.endLine, extractLineRange(src, scope.startLine, scope.endLine))
-	}
-}
-
-func TestIsJSTSExt(t *testing.T) {
-	for _, ext := range []string{".js", ".jsx", ".ts", ".tsx"} {
-		if !isJSTSExt(ext) {
-			t.Errorf("isJSTSExt(%q) = false, want true", ext)
-		}
-	}
-	if isJSTSExt(".go") || isJSTSExt(".py") {
-		t.Error("non JS/TS extensions should return false")
-	}
-}
-
-func TestJSTSFenceLang(t *testing.T) {
-	if got := jstsFenceLang("a.ts"); got != "typescript" {
-		t.Errorf("jstsFenceLang(.ts) = %q, want typescript", got)
-	}
-	if got := jstsFenceLang("a.js"); got != "javascript" {
-		t.Errorf("jstsFenceLang(.js) = %q, want javascript", got)
 	}
 }
 

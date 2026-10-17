@@ -7,13 +7,7 @@ import (
 	"unicode"
 
 	"stet/cli/internal/diff"
-)
-
-const (
-	jsExt  = ".js"
-	jsxExt = ".jsx"
-	tsExt  = ".ts"
-	tsxExt = ".tsx"
+	"stet/cli/internal/jsts"
 )
 
 // maxJSTSImportLines caps the collected import block shown to the model.
@@ -174,24 +168,6 @@ func jstsBraceDelta(line string) int {
 	return delta
 }
 
-func isJSTSExt(ext string) bool {
-	switch ext {
-	case jsExt, jsxExt, tsExt, tsxExt:
-		return true
-	default:
-		return false
-	}
-}
-
-func jstsFenceLang(filePath string) string {
-	switch filepath.Ext(filePath) {
-	case tsExt, tsxExt:
-		return "typescript"
-	default:
-		return "javascript"
-	}
-}
-
 // expandJSTSHunk enriches a hunk with enclosing function or class-method context
 // for JavaScript/TypeScript files. When the file has top-level imports above the
 // hunk, a `## File imports` section is prepended so the model does not report
@@ -223,7 +199,7 @@ func expandJSTSHunk(repoRoot string, hunk diff.Hunk, maxTokens int) (diff.Hunk, 
 			imports.block = truncateToTokens(imports.block, importBudget)
 		}
 	}
-	lang := jstsFenceLang(hunk.FilePath)
+	lang := jsts.FenceLanguage(filepath.Ext(hunk.FilePath))
 	importSection := ""
 	if showImports {
 		importSection = "## File imports\n\n```" + lang + "\n" + imports.block + "\n```\n\n"
